@@ -46,38 +46,55 @@ object EdgeBetweennessCentrality {
    * @return A map where the key is the vertex ID and the value is a sequence of predecessor vertices.
    */
   def calculateShortestPaths(graph: Graph, source: Int): Map[Int, Seq[Int]] = {
+    // Initialize a mutable map to store the distances from the source to each vertex.
+    // Initially, set all distances to positive infinity.
     val distances = mutable.Map[Int, Double]()
+
+    // Initialize a mutable map to store the predecessor vertices for each vertex.
     val predecessors = mutable.Map[Int, Seq[Int]]()
 
+    // Set initial distances and predecessors for all vertices.
     graph.vertices.foreach { v =>
       distances(v) = Double.PositiveInfinity
       predecessors(v) = Seq()
     }
 
+    // Set the distance from the source to itself to 0.
     distances(source) = 0.0
+
+    // Create a priority queue to process vertices based on their distance.
     val queue = mutable.PriorityQueue[(Double, Int)]()(Ordering.by(-_._1))
     queue.enqueue((0.0, source))
 
+    // Process the priority queue until it's empty.
     while (queue.nonEmpty) {
+      // Dequeue the vertex with the smallest distance.
       val (currentDist, currentVertex) = queue.dequeue()
 
+      // If the current distance is less than or equal to the stored distance, proceed.
       if (currentDist <= distances(currentVertex)) {
+        // Iterate over each edge connected to the current vertex.
         for (Edge(_, neighbor, weight) <- graph.edges if graph.edges.contains(Edge(currentVertex, neighbor, weight))) {
+          // Calculate the distance to the neighbor vertex.
           val distance = currentDist + 1
 
+          // If the new distance is shorter, update the distance and predecessors.
           if (distance < distances(neighbor)) {
             distances(neighbor) = distance
             predecessors(neighbor) = Seq(currentVertex)
             queue.enqueue((distance, neighbor))
           } else if (distance == distances(neighbor)) {
+            // If the distance is equal, add the current vertex to the predecessors.
             predecessors(neighbor) :+= currentVertex
           }
         }
       }
     }
 
+    // Convert the mutable map to an immutable map and return it.
     predecessors.toMap
   }
+
 
   /**
    * Accumulates the edge betweenness centrality for all edges in the graph.
@@ -86,28 +103,46 @@ object EdgeBetweennessCentrality {
    * @return A map where the key is a tuple of source and destination vertex IDs, and the value is the edge betweenness centrality.
    */
   def accumulateEdgeBetweenness(graph: Graph): Map[(Int, Int), Double] = {
+    // Initialize a mutable map to store the edge betweenness centrality values
     val edgeBetweenness = mutable.Map[(Int, Int), Double]().withDefaultValue(0.0)
 
+    // Iterate over each vertex in the graph as the source vertex
     for (source <- graph.vertices) {
+      // Calculate the shortest paths from the source vertex to all other vertices
       val shortestPaths = calculateShortestPaths(graph, source)
+
+      // Initialize a mutable map to store the dependency values for each vertex
       val dependencies = mutable.Map[Int, Double]().withDefaultValue(0.0)
+
+      // Sort vertices based on the number of shortest paths they are involved in
       var nodes = graph.vertices.toSeq.sortBy(n => shortestPaths(n).size)
 
+      // Process each node in reverse order (starting from the farthest)
       while (nodes.nonEmpty) {
-        val w = nodes.last
-        nodes = nodes.init // Removes the last element
+        val w = nodes.last       // Get the last node in the sorted list
+        nodes = nodes.init       // Remove the last node from the list
 
+        // Iterate over each predecessor of the current node in the shortest paths
         for (v <- shortestPaths(w)) {
+          // Calculate the dependency ratio for the current node
           val ratio = (1.0 + dependencies(w)) / shortestPaths(w).size
+
+          // Accumulate the dependency value for the predecessor
           dependencies(v) += ratio
+
+          // Ensure the edge is represented in a consistent order (v, w)
           val edge = if (v < w) (v, w) else (w, v)
+
+          // Accumulate the edge betweenness centrality value for the edge
           edgeBetweenness(edge) += ratio
         }
       }
     }
 
+    // Convert the mutable map to an immutable map and return it
     edgeBetweenness.toMap
   }
+
 
   /**
    * Main method to run the Edge Betweenness Centrality calculation.
