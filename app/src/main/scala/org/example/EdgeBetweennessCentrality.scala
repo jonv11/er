@@ -101,6 +101,11 @@ object EdgeBetweennessCentrality {
    * @param args Command-line arguments (not used).
    */
   def main(args: Array[String]): Unit = {
+
+
+    // https://amirieb.github.io/COMP5800_S20/files/lec-2-2.pdf
+
+
     process(Graph(Set(1, 2, 3, 4, 5, 6), Seq(
       Edge(1, 2, 0.1), Edge(1, 3, 0.4), Edge(2, 4, 0.5),
       Edge(3, 4, 0.7), Edge(4, 5, 0.8), Edge(5, 6, 0.2)
