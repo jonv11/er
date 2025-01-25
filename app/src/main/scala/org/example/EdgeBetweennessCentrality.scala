@@ -103,7 +103,19 @@ object EdgeBetweennessCentrality {
   def main(args: Array[String]): Unit = {
 
 
+    // https://amirieb.github.io/COMP5800_S20/files/lec-1-1.pdf
+    // https://amirieb.github.io/COMP5800_S20/files/lec-1-2.pdf
+    // https://amirieb.github.io/COMP5800_S20/files/lec-1-3.pdf
+    // https://amirieb.github.io/COMP5800_S20/files/lec-1-4.pdf
+
+    // https://amirieb.github.io/COMP5800_S20/files/lec-2-1.pdf
     // https://amirieb.github.io/COMP5800_S20/files/lec-2-2.pdf
+
+    // https://amirieb.github.io/COMP5800_S20/files/lec-3-1.pdf
+    // https://amirieb.github.io/COMP5800_S20/files/lec-3-2.pdf
+
+    // https://amirieb.github.io/COMP5800_S20/files/lec-4-1.pdf
+    // ...
 
 
     process(Graph(Set(1, 2, 3, 4, 5, 6), Seq(
