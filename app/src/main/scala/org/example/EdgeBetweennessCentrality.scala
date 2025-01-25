@@ -1,6 +1,20 @@
 package org.example
 
 import scala.collection.mutable
+import org.graphstream.graph._
+import org.graphstream.graph.implementations._
+import org.graphstream.stream.file.FileSinkImages
+import org.graphstream.stream.file.FileSinkImages.{LayoutPolicy, OutputType, Quality, Resolutions}
+import org.graphstream.ui.swingViewer.ViewPanel
+import org.graphstream.ui.view.Viewer
+
+import java.awt.Graphics2D
+import javax.imageio.ImageIO
+import java.awt.image.BufferedImage
+import java.io.File
+import javax.imageio.ImageIO
+import java.awt.image.BufferedImage
+import java.io.File
 
 /**
  * EdgeBetweennessCentrality calculates the edge betweenness centrality for a graph.
@@ -49,7 +63,7 @@ object EdgeBetweennessCentrality {
 
       if (currentDist <= distances(currentVertex)) {
         for (Edge(_, neighbor, weight) <- graph.edges if graph.edges.contains(Edge(currentVertex, neighbor, weight))) {
-          val distance = currentDist + 1 / weight
+          val distance = currentDist + 1
 
           if (distance < distances(neighbor)) {
             distances(neighbor) = distance
@@ -151,63 +165,88 @@ object EdgeBetweennessCentrality {
       Edge(4, 5, 0.3)
     )), "Test Sample 4", "test_sample_4.png")
 
-/*
-    Edge Betweenness Centrality:
-      Edge (5, 6): 5.0 [0.2] => 25.0
-    Edge (3, 4): 1.0 [0.7] => 1.4285714285714286
-    Edge (1, 2): 2.0 [0.1] => 20.0
-    Edge (4, 5): 8.0 [0.8] => 10.0
-    Edge (2, 4): 2.0 [0.5] => 4.0
-    Edge (1, 3): 1.0 [0.4] => 2.5
-    Edge Betweenness Centrality:
-      Edge (5, 6): 5.0 [0.7] => 7.142857142857143
-    Edge (3, 4): 1.5 [0.5] => 3.0
-    Edge (1, 2): 1.5 [0.2] => 7.5
-    Edge (4, 5): 12.0 [0.4] => 30.0
-    Edge (6, 7): 1.0 [0.8] => 1.25
-    Edge (2, 4): 1.5 [0.6] => 2.5
-    Edge (1, 3): 1.5 [0.3] => 5.0
-    Edge (5, 7): 5.0 [0.9] => 5.555555555555555
-    Edge Betweenness Centrality:
-      Edge (5, 6): 8.0 [0.7] => 11.428571428571429
-    Edge (3, 4): 1.0 [0.6] => 1.6666666666666667
-    Edge (7, 8): 5.0 [0.8] => 6.25
-    Edge (1, 2): 3.0 [0.1] => 30.0
-    Edge (4, 5): 9.0 [0.5] => 18.0
-    Edge (6, 7): 10.0 [0.2] => 50.0
-    Edge (2, 4): 2.0 [0.4] => 5.0
-    Edge (2, 8): 2.0 [0.4] => 5.0
-    Edge (3, 6): 5.0 [0.9] => 5.555555555555555
-    Edge (1, 3): 1.0 [0.3] => 3.3333333333333335
-    Edge Betweenness Centrality:
-      Edge (5, 6): 15.0 [0.6] => 25.0
-    Edge (3, 4): 1.0 [0.4] => 2.5
-    Edge (7, 8): 7.0 [0.1] => 70.0
-    Edge (1, 2): 2.0 [0.2] => 10.0
-    Edge (4, 5): 16.0 [0.5] => 32.0
-    Edge (6, 7): 12.0 [0.2] => 60.0
-    Edge (8, 9): 6.0 [0.8] => 7.5
-    Edge (9, 10): 7.0 [0.3] => 23.333333333333336
-    Edge (3, 9): 2.0 [0.7] => 2.857142857142857
-    Edge (1, 3): 1.0 [0.5] => 2.0
-    Edge (2, 4): 2.0 [0.3] => 6.666666666666667
-    Edge (2, 10): 2.0 [0.4] => 5.0
-*/
-
   }
 
   def process(graph: Graph): Unit = {
     val edgeBetweenness = accumulateEdgeBetweenness(graph)
 
     println("Edge Betweenness Centrality:")
-    edgeBetweenness.foreach { case ((src, dst), betweenness) =>
-      val edge = graph.edges.filter(e => e.src == src && e.dst == dst).head
-      println(s"Edge ($src, $dst): $betweenness [${edge.weight}] => ${betweenness/edge.weight}")
+    val sorted = edgeBetweenness.map{
+      case ((src, dst), betweenness) => (graph.edges.filter(e => e.src == src && e.dst == dst).head, betweenness)
+    }.toSeq.sortBy { case (edge, betweenness) => -betweenness / edge.weight }
+
+    def mean(seq: Seq[Double]): Double = seq.sum / seq.size
+
+    def median(seq: Seq[Double]): Double = {
+      val sortedSeq = seq.sorted
+      val size = sortedSeq.size
+      if (size % 2 == 0) {
+        (sortedSeq(size / 2 - 1) + sortedSeq(size / 2)) / 2.0
+      } else {
+        sortedSeq(size / 2)
+      }
     }
+
+    def standardDeviation(seq: Seq[Double]): Double = {
+      val avg = mean(seq)
+      val variance = seq.map(x => math.pow(x - avg, 2)).sum / seq.size
+      math.sqrt(variance)
+    }
+
+    val data = sorted.map{ case (edge, betweenness) => betweenness / edge.weight }
+
+    val avg = mean(data)
+    val med = median(data)
+    val stdDev = standardDeviation(data)
+
+    println(f"Mean: $avg%.2f")
+    println(f"Median: $med%.2f")
+    println(f"Standard Deviation: $stdDev%.2f")
+
+    sorted.foreach { case (edge, betweenness) =>
+      println(f"Edge (${edge.src}, ${edge.dst}): $betweenness%.2f [${edge.weight}%.2f] => ${betweenness / edge.weight}%.2f")
+    }
+
+    println("-----------------------")
   }
 
   def process(graph: Graph, title: String, fileName: String): Unit = {
-    //plotGraph(graph, title, fileName)
+    plotGraph(graph, title, fileName)
     process(graph)
+  }
+
+
+  private def plotGraph(graph: Graph, title: String, fileName: String): Unit = {
+    System.setProperty("org.graphstream.ui", "org.graphstream.ui.j2dviewer.J2DGraphRenderer")
+    val gsGraph = new SingleGraph(title)
+
+    // Add nodes to the graph
+    graph.vertices.foreach { v =>
+      val node = gsGraph.addNode[Node](v.toString)
+      node.setAttribute("ui.label", v.toString)
+    }
+
+    // Add edges to the graph
+    accumulateEdgeBetweenness(graph).map{
+      case ((src, dst), betweenness) => (graph.edges.filter(e => e.src == src && e.dst == dst).head, betweenness)
+    }.foreach { case (e, betweenness) =>
+      val score = betweenness / e.weight
+      val edge = gsGraph.addEdge[org.graphstream.graph.Edge](s"${e.src}-${e.dst}", e.src.toString, e.dst.toString, false)
+      edge.setAttribute("ui.label", f"$betweenness%.2f / ${e.weight}%.2f = $score%.2f")
+    }
+
+    // Add styles for nodes and edges
+    gsGraph.addAttribute("ui.stylesheet", """
+    node { fill-color: black; text-alignment: above; text-size: 20; }
+    edge { text-alignment: above; text-size: 20; }
+  """)
+    gsGraph.addAttribute("ui.quality")
+    gsGraph.addAttribute("ui.antialias")
+
+    val pic = new FileSinkImages(OutputType.PNG, Resolutions.HD1080)
+    pic.setLayoutPolicy(LayoutPolicy.COMPUTED_FULLY_AT_NEW_IMAGE)
+    pic.setQuality(Quality.HIGH)
+    pic.writeAll(gsGraph, fileName)
+
   }
 }
