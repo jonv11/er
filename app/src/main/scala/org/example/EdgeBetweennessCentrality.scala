@@ -49,7 +49,7 @@ object EdgeBetweennessCentrality {
 
       if (currentDist <= distances(currentVertex)) {
         for (Edge(_, neighbor, weight) <- graph.edges if graph.edges.contains(Edge(currentVertex, neighbor, weight))) {
-          val distance = currentDist + weight
+          val distance = currentDist + 1 / weight
 
           if (distance < distances(neighbor)) {
             distances(neighbor) = distance
@@ -125,6 +125,14 @@ object EdgeBetweennessCentrality {
       Edge(6, 7, 0.2), Edge(7, 8, 0.1), Edge(8, 9, 0.8),
       Edge(9, 10, 0.3), Edge(3, 9, 0.7), Edge(2, 10, 0.4)
     )), "Test Sample 3", "test_sample_3.png")
+
+
+    process(Graph(Set(1, 2, 3, 4, 5), Seq(
+      Edge(1, 2, 0.2), Edge(1, 3, 0.5), Edge(1, 4, 0.3),
+      Edge(1, 5, 0.4), Edge(2, 3, 0.5), Edge(2, 4, 0.6),
+      Edge(2, 5, 0.2), Edge(3, 4, 0.1), Edge(3, 5, 0.8),
+      Edge(4, 5, 0.3)
+    )), "Test Sample 4", "test_sample_4.png")
 
 /*
     Edge Betweenness Centrality:
