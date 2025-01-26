@@ -151,6 +151,13 @@ object EdgeBetweennessCentrality {
    */
   def main(args: Array[String]): Unit = {
 
+    // Girvan-Newman
+    // Louvain
+
+    // https://www.youtube.com/watch?v=HYSfO7dI0c8
+    // https://www.youtube.com/watch?v=nPwfqOf9KhM
+    // https://www.youtube.com/watch?v=LtQoPEKKRYM
+    // https://www.youtube.com/watch?v=Xt0vBtBY2BU
 
     // https://amirieb.github.io/COMP5800_S20/files/lec-1-1.pdf
     // https://amirieb.github.io/COMP5800_S20/files/lec-1-2.pdf
