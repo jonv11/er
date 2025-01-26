@@ -1,42 +1,13 @@
 package org.example
 
-import scala.collection.mutable
-import org.graphstream.graph._
-import org.graphstream.graph.implementations._
-import org.graphstream.stream.file.FileSinkImages
-import org.graphstream.stream.file.FileSinkImages.{LayoutPolicy, OutputType, Quality, Resolutions}
-import org.graphstream.ui.swingViewer.ViewPanel
-import org.graphstream.ui.view.Viewer
+import org.example.GraphSchema._
 
-import java.awt.Graphics2D
-import javax.imageio.ImageIO
-import java.awt.image.BufferedImage
-import java.io.File
-import javax.imageio.ImageIO
-import java.awt.image.BufferedImage
-import java.io.File
+import scala.collection.mutable
 
 /**
  * EdgeBetweennessCentrality calculates the edge betweenness centrality for a graph.
  */
 object EdgeBetweennessCentrality {
-
-  /**
-   * Represents an edge in the graph.
-   *
-   * @param src    Source vertex ID.
-   * @param dst    Destination vertex ID.
-   * @param weight Weight of the edge.
-   */
-  case class Edge(src: Int, dst: Int, weight: Double)
-
-  /**
-   * Represents a graph with a set of vertices and edges.
-   *
-   * @param vertices Set of vertex IDs.
-   * @param edges    Sequence of edges in the graph.
-   */
-  case class Graph(vertices: Set[Int], edges: Seq[Edge])
 
   /**
    * Calculates the shortest paths from a given source vertex to all other vertices in the graph.
@@ -156,11 +127,15 @@ object EdgeBetweennessCentrality {
     // Louvain
     // https://en.wikipedia.org/wiki/Louvain_method
     // https://neo4j.com/docs/graph-data-science/current/algorithms/louvain/
+    // Leiden
+    // https://en.wikipedia.org/wiki/Leiden_algorithm
+
 
     // https://www.youtube.com/watch?v=HYSfO7dI0c8
     // https://www.youtube.com/watch?v=nPwfqOf9KhM
     // https://www.youtube.com/watch?v=LtQoPEKKRYM
     // https://www.youtube.com/watch?v=Xt0vBtBY2BU
+    // https://www.youtube.com/watch?v=3-hyXIcSHkA
 
     // https://amirieb.github.io/COMP5800_S20/files/lec-1-1.pdf
     // https://amirieb.github.io/COMP5800_S20/files/lec-1-2.pdf
@@ -213,8 +188,16 @@ object EdgeBetweennessCentrality {
   }
 
   def process(graph: Graph): Unit = {
+    //val communities = LeidenAlgorithm.run(graph)
     val edgeBetweenness = accumulateEdgeBetweenness(graph)
-
+/*
+    println("Communities:")
+    for ((communityId, community) <- communities) {
+      println(s"Community ID: $communityId")
+      println(s"Vertices: ${community.vertices.mkString(", ")}")
+      println(s"Edges: ${community.edges.map(e => s"(${e.src}, ${e.dst})").mkString(", ")}")
+    }
+*/
     println("Edge Betweenness Centrality:")
     val sorted = edgeBetweenness.map{
       case ((src, dst), betweenness) => (graph.edges.filter(e => e.src == src && e.dst == dst).head, betweenness)
@@ -262,6 +245,12 @@ object EdgeBetweennessCentrality {
 
 
   private def plotGraph(graph: Graph, title: String, fileName: String): Unit = {
+
+    import org.graphstream.graph._
+    import org.graphstream.graph.implementations._
+    import org.graphstream.stream.file.FileSinkImages
+    import org.graphstream.stream.file.FileSinkImages.{LayoutPolicy, OutputType, Quality, Resolutions}
+
     System.setProperty("org.graphstream.ui", "org.graphstream.ui.j2dviewer.J2DGraphRenderer")
     val gsGraph = new SingleGraph(title)
 
