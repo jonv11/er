@@ -152,7 +152,10 @@ object EdgeBetweennessCentrality {
   def main(args: Array[String]): Unit = {
 
     // Girvan-Newman
+    // https://en.wikipedia.org/wiki/Girvan%E2%80%93Newman_algorithm
     // Louvain
+    // https://en.wikipedia.org/wiki/Louvain_method
+    // https://neo4j.com/docs/graph-data-science/current/algorithms/louvain/
 
     // https://www.youtube.com/watch?v=HYSfO7dI0c8
     // https://www.youtube.com/watch?v=nPwfqOf9KhM
